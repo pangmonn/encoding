@@ -262,17 +262,34 @@
 
 
         <!-- ==================== TAB 3: 소리 압축 ==================== -->
-        <section id="sec-audio" class="space-y-6 hidden">
+ <section id="sec-audio" class="space-y-6 hidden">
             <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
                 <h2 class="text-xl font-bold mb-2 flex items-center gap-2 text-purple-900">
                     <i data-lucide="music" class="w-5 h-5 text-purple-600"></i> 소리 데이터 압축 (FLAC, MP3, AAC) & 청음 테스트
                 </h2>
                 <p class="text-sm text-slate-600 mb-4">
-                    기본 음원을 사용하여 <strong>무손실(FLAC)</strong>과 <strong>손실(MP3, AAC)</strong> 압축 시 소리의 주파수/비트 변화를 관찰해 보세요. 손실률을 직접 조절하면서 실제 음질 차이를 들어볼 수 있습니다.
+                    음원 파일(MP3, WAV 등)을 업로드하거나 기본 음원을 사용하여 <strong>무손실(FLAC)</strong>과 <strong>손실(MP3, AAC)</strong> 압축 시 소리의 주파수/비트 변화를 관찰해 보세요. 손실률을 직접 조절하면서 실제 음질 차이를 들어볼 수 있습니다.
                 </p>
 
-                <!-- Audio Controls -->
+                <!-- Audio Upload & Player Controls -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <label class="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-sm transition flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> 내 소리 파일 업로드
+                            <input type="file" id="audio-file-input" accept="audio/*" class="hidden" onchange="handleAudioUpload(event)">
+                        </label>
+                        <button onclick="loadDefaultAudio()" class="px-3 py-2 border border-slate-300 bg-white hover:bg-slate-100 rounded-lg text-xs text-slate-700 font-medium">
+                            기본 샘플 사운드 사용
+                        </button>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right w-full md:w-auto" id="audio-file-name">
+                        현재 파일: 기본 내장 샘플 신디사이저 음원
+                    </div>
+                </div>
+
+                <!-- Simulation Settings & Controls -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Left: Lossy Control Slider -->
                     <div class="p-5 bg-purple-50/60 rounded-xl border border-purple-200 flex flex-col justify-between">
                         <div>
                             <h3 class="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
@@ -297,6 +314,7 @@
                             </div>
                         </div>
 
+                        <!-- Audio Playback Buttons -->
                         <div class="mt-6 pt-4 border-t border-purple-200/60 flex gap-2">
                             <button id="btn-play-orig" onclick="playAudio('orig')" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
                                 <i data-lucide="play-circle" class="w-4 h-4"></i> 원본 듣기
@@ -307,6 +325,7 @@
                         </div>
                     </div>
 
+                    <!-- Right: Waveform & Spectrum Visualizer -->
                     <div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-center mb-2">
@@ -316,25 +335,36 @@
                             <canvas id="audio-canvas" width="500" height="150" class="w-full bg-slate-950 rounded border border-slate-800"></canvas>
                         </div>
 
+                        <!-- Format comparison table -->
                         <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
                             <div class="p-2 bg-slate-800/80 rounded text-slate-300">
                                 <div class="text-slate-400 text-[10px]">FLAC (무손실)</div>
-                                <div id="size-flac" class="font-bold code-font text-purple-300 mt-0.5">705 KB</div>
+                                <div id="size-flac" class="font-bold code-font text-purple-300 mt-0.5">0 KB</div>
                                 <div class="text-[10px] text-slate-500 mt-0.5">원형 100% 보존</div>
                             </div>
                             <div class="p-2 bg-slate-800/80 rounded text-slate-300">
                                 <div class="text-slate-400 text-[10px]">MP3 (손실)</div>
-                                <div id="size-mp3" class="font-bold code-font text-amber-300 mt-0.5">141 KB</div>
+                                <div id="size-mp3" class="font-bold code-font text-amber-300 mt-0.5">0 KB</div>
                                 <div class="text-[10px] text-slate-500 mt-0.5">청각 심리 모델 제거</div>
                             </div>
                             <div class="p-2 bg-slate-800/80 rounded text-slate-300">
                                 <div class="text-slate-400 text-[10px]">AAC (손실)</div>
-                                <div id="size-aac" class="font-bold code-font text-emerald-300 mt-0.5">112 KB</div>
+                                <div id="size-aac" class="font-bold code-font text-emerald-300 mt-0.5">0 KB</div>
                                 <div class="text-[10px] text-slate-500 mt-0.5">MP3 대비 고효율</div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div id="quiz-audio-card" class="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold text-lg mb-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-amber-600"></i> 소리 압축 이해도 퀴즈
+                </div>
+                <p id="quiz-audio-question" class="text-slate-800 mb-4 font-medium"></p>
+                <div id="quiz-audio-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"></div>
+                <div id="quiz-audio-feedback" class="hidden p-3 rounded-lg text-sm font-semibold"></div>
             </div>
         </section>
 
@@ -682,99 +712,196 @@
         // ==========================================
 
         let audioCtx = null;
-        let isPlaying = false;
-        let osc = null;
+        let audioBuffer = null;
+        let currentSource = null;
 
-        function updateAudioSimulation() {
-            const lossVal = document.getElementById('loss-slider').value;
-            const label = document.getElementById('loss-level-val');
-            
-            if (lossVal < 30) label.innerText = "낮음 (고음질 / 320kbps급)";
-            else if (lossVal < 70) label.innerText = "보통 (중음질 / 128kbps급)";
-            else label.innerText = "높음 (저음질 / 64kbps 이하)";
-
-            // Estimate sizes
-            const baseFlac = 705;
-            const mp3Size = Math.round(705 * (1 - (lossVal * 0.008)));
-            const aacSize = Math.round(mp3Size * 0.85);
-
-            document.getElementById('size-flac').innerText = `${baseFlac} KB`;
-            document.getElementById('size-mp3').innerText = `${mp3Size} KB`;
-            document.getElementById('size-aac').innerText = `${aacSize} KB`;
-
-            drawAudioCanvas(lossVal);
-        }
-
-        function drawAudioCanvas(lossLevel = 15) {
-            const canvas = document.getElementById('audio-canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Frequency Bars
-            const numBars = 40;
-            const barWidth = canvas.width / numBars - 2;
-
-            for (let i = 0; i < numBars; i++) {
-                // Higher index = higher frequency
-                let cutoffFactor = 1.0;
-                if (i > numBars * (1 - (lossLevel / 120))) {
-                    cutoffFactor = 0.1; // Cut high frequencies in lossy audio
-                }
-
-                const height = (Math.sin(i * 0.5) * 40 + 50) * cutoffFactor;
-                
-                ctx.fillStyle = cutoffFactor < 0.5 ? '#64748b' : '#a855f7';
-                ctx.fillRect(i * (barWidth + 2), canvas.height - height, barWidth, height);
-            }
-        }
-
-        function playAudio(type) {
-            if (isPlaying) {
-                if (osc) osc.stop();
-                isPlaying = false;
-                document.getElementById('playing-state').innerText = "정지됨";
-                return;
-            }
-
+        function getAudioContext() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-
-            osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4 note
-
-            if (type === 'compressed') {
-                const lossVal = document.getElementById('loss-slider').value;
-                // Use a lowpass filter to simulate lossy high-frequency removal
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = "lowpass";
-                filter.frequency.setValueAtTime(Math.max(400, 8000 - (lossVal * 75)), audioCtx.currentTime);
-                
-                osc.connect(filter);
-                filter.connect(gain);
-            } else {
-                osc.connect(gain);
-            }
-
-            gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-
-            osc.start();
-            isPlaying = true;
-            document.getElementById('playing-state').innerText = type === 'orig' ? "원본 재생 중..." : "압축 소리 재생 중...";
-
-            setTimeout(() => {
-                if (isPlaying) {
-                    osc.stop();
-                    isPlaying = false;
-                    document.getElementById('playing-state').innerText = "정지됨";
-                }
-            }, 1500);
+            return audioCtx;
         }
 
+        function loadDefaultAudio() {
+            const ctx = getAudioContext();
+            const sampleRate = ctx.sampleRate;
+            const duration = 3.0;
+            const buffer = ctx.createBuffer(1, sampleRate * duration, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < buffer.length; i++) {
+                let t = i / sampleRate;
+                let freq1 = 440;
+                let freq2 = 554.37;
+                let freq3 = 659.25;
+                
+                let envelope = Math.exp(-t * 0.8);
+                data[i] = (
+                    0.4 * Math.sin(2 * Math.PI * freq1 * t) +
+                    0.3 * Math.sin(2 * Math.PI * freq2 * t) +
+                    0.2 * Math.sin(2 * Math.PI * freq3 * t) +
+                    0.1 * Math.sin(2 * Math.PI * freq1 * 4 * t)
+                ) * envelope;
+            }
+
+            audioBuffer = buffer;
+            document.getElementById('audio-file-name').innerText = "현재 파일: 기본 내장 합성 사운드";
+            updateAudioSimulation();
+        }
+
+        function handleAudioUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('audio-file-name').innerText = `현재 파일: ${file.name}`;
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const ctx = getAudioContext();
+                ctx.decodeAudioData(event.target.result, (decoded) => {
+                    audioBuffer = decoded;
+                    updateAudioSimulation();
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function updateAudioSimulation() {
+            if (!audioBuffer) return;
+
+            const lossVal = parseInt(document.getElementById('loss-slider').value);
+            const lossLabel = document.getElementById('loss-level-val');
+
+            if (lossVal < 30) {
+                lossLabel.innerText = `낮음 (품질 상, 손실률 ${lossVal}%)`;
+                lossLabel.className = "text-emerald-600 code-font font-bold";
+            } else if (lossVal < 70) {
+                lossLabel.innerText = `중간 (품질 중, 손실률 ${lossVal}%)`;
+                lossLabel.className = "text-amber-600 code-font font-bold";
+            } else {
+                lossLabel.innerText = `높음 (품질 하, 손실률 ${lossVal}%)`;
+                lossLabel.className = "text-rose-600 code-font font-bold";
+            }
+
+            const duration = audioBuffer.duration;
+            const pcmBits = duration * audioBuffer.sampleRate * 16;
+
+            const flacSize = Math.round((pcmBits * 0.55) / 8 / 1024);
+            const mp3Size = Math.round((pcmBits * (1 - (lossVal * 0.008))) / 8 / 1024 / 8);
+            const aacSize = Math.round(mp3Size * 0.82);
+
+            document.getElementById('size-flac').innerText = `${flacSize} KB`;
+            document.getElementById('size-mp3').innerText = `${mp3Size} KB`;
+            document.getElementById('size-aac').innerText = `${aacSize} KB`;
+
+            drawAudioSpectrum(lossVal);
+            renderAudioQuiz();
+        }
+
+        function drawAudioSpectrum(lossVal) {
+            const canvas = document.getElementById('audio-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (!audioBuffer) return;
+            const rawData = audioBuffer.getChannelData(0);
+            const step = Math.ceil(rawData.length / w);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < w; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    let datum = rawData[i * step + j];
+                    if (datum < min) min = datum;
+                    if (datum > max) max = datum;
+                }
+                ctx.moveTo(i, (1 + min) * h / 2);
+                ctx.lineTo(i, (1 + max) * h / 2);
+            }
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 1.5;
+
+            let quantizeStep = 1 + (lossVal / 10); 
+
+            for (let i = 0; i < w; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    let datum = rawData[i * step + j];
+                    datum = Math.round(datum * (20 - quantizeStep)) / (20 - quantizeStep);
+                    if (datum < min) min = datum;
+                    if (datum > max) max = datum;
+                }
+                ctx.moveTo(i, (1 + min) * h / 2);
+                ctx.lineTo(i, (1 + max) * h / 2);
+            }
+            ctx.stroke();
+        }
+
+        function playAudio(mode) {
+            const ctx = getAudioContext();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            if (currentSource) {
+                currentSource.stop();
+            }
+
+            if (!audioBuffer) return;
+
+            currentSource = ctx.createBufferSource();
+
+            if (mode === 'orig') {
+                currentSource.buffer = audioBuffer;
+                currentSource.connect(ctx.destination);
+                document.getElementById('playing-state').innerText = "▶ 원본 재생 중...";
+                document.getElementById('playing-state').className = "text-xs text-emerald-400 font-bold";
+            } else {
+                const lossVal = parseInt(document.getElementById('loss-slider').value);
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 20000 - (lossVal * 185);
+
+                const distortion = ctx.createWaveShaper();
+                distortion.curve = makeDistortionCurve(101 - lossVal);
+
+                currentSource.buffer = audioBuffer;
+                currentSource.connect(filter);
+                filter.connect(distortion);
+                distortion.connect(ctx.destination);
+
+                document.getElementById('playing-state').innerText = `▶ 압축 소리 재생 중 (손실률 ${lossVal}%)`;
+                document.getElementById('playing-state').className = "text-xs text-purple-400 font-bold";
+            }
+
+            currentSource.start();
+            currentSource.onended = () => {
+                document.getElementById('playing-state').innerText = "정지됨";
+                document.getElementById('playing-state').className = "text-xs text-slate-500";
+            };
+        }
+
+        function makeDistortionCurve(quality) {
+            let n_samples = 44100;
+            let curve = new Float32Array(n_samples);
+            let steps = quality;
+            for (let i = 0; i < n_samples; ++i) {
+                let x = (i * 2) / n_samples - 1;
+                curve[i] = Math.round(x * steps) / steps;
+            }
+            return curve;
+        }
         // Initialize default view
         window.onload = function() {
             runRLE();
