@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고등학교 정보 - 디지털 데이터 압축 시뮬레이터</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tab-btn.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white shadow-lg py-4 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="file-archive" class="w-8 h-8 text-indigo-300"></i>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">디지털 데이터 압축 시뮬레이터</h1>
+                    <p class="text-xs text-indigo-200">고등학교 정보 교과 - 데이터 표현과 압축 단원 학습용</p>
+                </div>
+            </div>
+            <div class="flex gap-2 text-sm bg-indigo-950/50 p-1.5 rounded-lg border border-indigo-700/50 w-full md:w-auto justify-center">
+                <button onclick="switchTab('text')" id="tab-text" class="tab-btn px-3 py-2 rounded-md transition duration-200 active flex items-center gap-1.5 text-xs md:text-sm">
+                    <i data-lucide="type" class="w-4 h-4"></i> 문자열 압축
+                </button>
+                <button onclick="switchTab('image')" id="tab-image" class="tab-btn px-3 py-2 rounded-md transition duration-200 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs md:text-sm">
+                    <i data-lucide="image" class="w-4 h-4"></i> 이미지 압축
+                </button>
+                <button onclick="switchTab('audio')" id="tab-audio" class="tab-btn px-3 py-2 rounded-md transition duration-200 text-slate-300 hover:text-white flex items-center gap-1.5 text-xs md:text-sm">
+                    <i data-lucide="music" class="w-4 h-4"></i> 소리 압축
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto w-full flex-grow p-4 md:p-6">
+
+        <!-- ==================== TAB 1: 문자열 압축 ==================== -->
+        <section id="sec-text" class="space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xl font-bold mb-2 flex items-center gap-2 text-indigo-900">
+                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i> 문자열 압축 (Run-Length & Lempel-Ziv)
+                </h2>
+                <p class="text-sm text-slate-600 mb-4">
+                    문자열 데이터에서 반복되는 구조를 찾아 압축하는 대표적인 알고리즘인 <strong>런-렝스 인코딩(RLE)</strong>과 <strong>렘펠-지브 인코딩(LZ77)</strong>의 동작 과정을 탐구해 보세요.
+                </p>
+
+                <!-- Input Controls -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-semibold text-slate-700">실험할 문자열 입력 (영문 추천)</label>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="text-input" value="COFFEEEEEE FREEE" 
+                               class="flex-grow px-4 py-2 border border-slate-300 rounded-lg code-font focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                        <div class="flex gap-2 shrink-0">
+                            <button onclick="runRLE()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-medium rounded-lg shadow-sm transition flex items-center justify-center gap-1">
+                                <i data-lucide="play" class="w-3.5 h-3.5"></i> RLE 압축
+                            </button>
+                            <button onclick="runLZ77()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs md:text-sm font-medium rounded-lg shadow-sm transition flex items-center justify-center gap-1">
+                                <i data-lucide="play" class="w-3.5 h-3.5"></i> LZ77 압축
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Visualizer Panel -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Steps Output -->
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-900 text-white flex flex-col">
+                        <h3 class="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider flex justify-between items-center">
+                            <span>압축 과정 시각화</span>
+                            <span id="algo-tag" class="text-xs bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded">선택 안 됨</span>
+                        </h3>
+                        
+                        <!-- Final Text Result Banner -->
+                        <div class="mb-3 p-3 bg-slate-950 border border-slate-800 rounded-lg">
+                            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1 flex justify-between">
+                                <span>최종 압축 결과 (텍스트)</span>
+                                <span id="text-result-len" class="text-indigo-400 code-font">0자</span>
+                            </div>
+                            <div id="text-final-result" class="code-font text-emerald-400 font-bold text-sm break-all">
+                                압축 버튼을 클릭하세요.
+                            </div>
+                        </div>
+
+                        <!-- Step Details List -->
+                        <div id="text-visualizer-steps" class="h-56 overflow-y-auto code-font text-sm space-y-2 pr-2 flex-grow">
+                            <div class="text-slate-500 text-center py-20">상단 버튼을 눌러 압축 시뮬레이션을 시작하세요.</div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Metrics -->
+                    <div class="border border-slate-200 rounded-lg p-5 bg-white flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">데이터 크기 변화 비교</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm font-medium mb-1">
+                                        <span>원본 크기 (ASCII 8bit 기준)</span>
+                                        <span id="text-orig-size" class="code-font font-bold">0 bits</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
+                                        <div id="bar-orig-text" class="bg-slate-400 h-full w-full transition-all duration-500"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm font-medium mb-1">
+                                        <span>압축 후 크기</span>
+                                        <span id="text-comp-size" class="code-font font-bold text-indigo-600">0 bits</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden">
+                                        <div id="bar-comp-text" class="bg-indigo-600 h-full w-0 transition-all duration-500"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-indigo-600 font-semibold uppercase">압축 효율성 (압축률)</div>
+                                    <div id="text-ratio" class="text-2xl font-extrabold text-indigo-900 code-font">0.0%</div>
+                                </div>
+                                <div id="text-ratio-badge" class="px-3 py-1 bg-indigo-200 text-indigo-800 rounded-full text-xs font-bold">
+                                    대기 중
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-slate-500 mt-4 bg-slate-50 p-3 rounded border space-y-1">
+                            <div>* <strong>RLE</strong>: 연속 반복 문자를 [문자][개수] 형태(예: A5)로 인코딩합니다.</div>
+                            <div>* <strong>LZ77 (교과서 방식)</strong>: 이전에 나온 문자 패턴의 <strong>(이동할 칸 수, 반복할 문자 길이)</strong>를 계산하여 치환 표기합니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Input Interactive Quiz Section -->
+            <div id="quiz-text-card" class="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold text-lg mb-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-amber-600"></i> 실시간 입력 문자열 압축 효율 예측 퀴즈
+                </div>
+                <p id="quiz-text-question" class="text-slate-800 mb-4 font-medium text-sm md:text-base">
+                    현재 입력된 문자열 <strong>"<span id="quiz-curr-text" class="code-font text-indigo-600 font-bold"></span>"</strong>에 대해 RLE 방식과 LZ77 방식 중 어느 알고리즘이 더 높은 압축 효율(더 작은 비트 수)을 발휘할까요?
+                </p>
+                <div id="quiz-text-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <button onclick="checkTextQuizChoice('rle')" class="p-3 text-left bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-sm font-semibold text-indigo-900 transition flex items-center justify-between">
+                        <span>1. RLE (Run-Length Encoding) 방식</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-amber-600"></i>
+                    </button>
+                    <button onclick="checkTextQuizChoice('lz77')" class="p-3 text-left bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-sm font-semibold text-purple-900 transition flex items-center justify-between">
+                        <span>2. LZ77 (Lempel-Ziv 77) 방식</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-amber-600"></i>
+                    </button>
+                </div>
+                <div id="quiz-text-feedback" class="hidden p-4 rounded-lg text-sm font-semibold"></div>
+            </div>
+        </section>
+
+
+        <!-- ==================== TAB 2: 이미지 압축 ==================== -->
+        <section id="sec-image" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xl font-bold mb-2 flex items-center gap-2 text-emerald-900">
+                    <i data-lucide="image" class="w-5 h-5 text-emerald-600"></i> 이미지 데이터 압축 (BMP, PNG, GIF, JPEG)
+                </h2>
+                <p class="text-sm text-slate-600 mb-4">
+                    비트맵(BMP) 무압축 원본 이미지가 대표적인 파일 포맷들(PNG, GIF, JPEG)로 압축될 때 픽셀 데이터가 비트 단위로 어떻게 치환되어 저장되는지 시각화로 직접 탐구해 보세요.
+                </p>
+
+                <!-- Image Test Bench -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Canvas & Controls -->
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-500 mb-2">샘플 BMP 이미지 (8x8 픽셀)</span>
+                        <canvas id="img-canvas" width="160" height="160" class="border-2 border-slate-400 bg-white shadow-inner rounded mb-4" title="샘플 픽셀 그리드"></canvas>
+                        
+                        <div class="w-full space-y-2">
+                            <label class="block text-xs font-semibold text-slate-600">샘플 패턴 선택</label>
+                            <select id="img-pattern-select" onchange="loadImgPattern()" class="w-full px-3 py-2 border rounded text-sm bg-white">
+                                <option value="simple">단순한 패턴 (큰 색상 면적 - PNG/GIF 유리)</option>
+                                <option value="gradient">그라데이션 패턴 (연속적 변화 - JPEG 유리)</option>
+                                <option value="checker">체커보드 패턴 (복잡한 고주파 - 압축 저하)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Visual Comparison Grid -->
+                    <div class="lg:col-span-2 space-y-4 flex flex-col justify-between">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                            <div class="p-4 bg-slate-100 rounded-lg border border-slate-300">
+                                <div class="text-xs text-slate-500 font-bold">BMP (원본)</div>
+                                <div class="text-xs text-slate-400">무압축 RGB24</div>
+                                <div id="size-bmp" class="text-base font-bold code-font text-slate-800 mt-2">1,536 bits</div>
+                            </div>
+                            <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                                <div class="text-xs text-emerald-700 font-bold">PNG</div>
+                                <div class="text-xs text-emerald-600">무손실 (Deflate)</div>
+                                <div id="size-png" class="text-base font-bold code-font text-emerald-700 mt-2">-</div>
+                            </div>
+                            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                <div class="text-xs text-amber-700 font-bold">GIF</div>
+                                <div class="text-xs text-amber-600">무손실 (256컬러 LZW)</div>
+                                <div id="size-gif" class="text-base font-bold code-font text-amber-700 mt-2">-</div>
+                            </div>
+                            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <div class="text-xs text-blue-700 font-bold">JPEG</div>
+                                <div class="text-xs text-blue-600">손실 (DCT/양자화)</div>
+                                <div id="size-jpeg" class="text-base font-bold code-font text-blue-700 mt-2">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Summary Guide Box -->
+                        <div class="p-4 bg-slate-100 rounded-lg border border-slate-200 text-xs text-slate-600 space-y-1">
+                            <div class="font-bold text-slate-800 mb-1">포맷별 데이터 절감 포인트:</div>
+                            <div>• <strong>PNG</strong>: 연속되거나 인접한 픽셀의 색상 차이를 계산한 뒤 허프만/Deflate로 무손실 압축합니다.</div>
+                            <div>• <strong>GIF</strong>: 최대 256가지 팔레트로 색상을 제한(인덱싱)하여 비트를 크게 줄인 뒤 LZW로 압축합니다.</div>
+                            <div>• <strong>JPEG</strong>: 사람의 눈이 인지하기 힘든 고주파 영역의 미세한 색상 정보를 버리는 손실 양자화를 수행합니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pixel-to-Bit Mapping Detailed Visualizer -->
+                <div class="border border-slate-200 rounded-xl p-5 bg-slate-900 text-white">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="binary" class="w-4 h-4"></i> 픽셀 묶음 ↔ 압축 비트(0101) 치환 저장 시각화
+                            </h3>
+                            <p class="text-xs text-slate-400">원래 픽셀 데이터(BMP)가 각 압축 형식에서 어떤 2진 비트 조합으로 변환되는지 비교합니다.</p>
+                        </div>
+                        <!-- Format selector for visualizer -->
+                        <select id="bit-map-format" onchange="renderBitMapping()" class="bg-slate-800 text-xs font-bold border border-slate-700 rounded px-3 py-1.5 text-emerald-300 focus:outline-none">
+                            <option value="bmp">BMP (원본 - 픽셀당 RGB 24비트)</option>
+                            <option value="png">PNG (차분 필터 + Deflate 비트)</option>
+                            <option value="gif">GIF (팔레트 인덱스 + LZW 비트)</option>
+                            <option value="jpeg">JPEG (DCT 주파수 + 양자화 비트)</option>
+                        </select>
+                    </div>
+
+                    <!-- Bit Stream Mapping Container -->
+                    <div id="bit-mapping-container" class="space-y-2 max-h-64 overflow-y-auto pr-1 text-xs code-font">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div id="quiz-img-card" class="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold text-lg mb-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-amber-600"></i> 이미지 압축 이해도 퀴즈
+                </div>
+                <p id="quiz-img-question" class="text-slate-800 mb-4 font-medium"></p>
+                <div id="quiz-img-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"></div>
+                <div id="quiz-img-feedback" class="hidden p-3 rounded-lg text-sm font-semibold"></div>
+            </div>
+        </section>
+
+
+        <!-- ==================== TAB 3: 소리 압축 ==================== -->
+        <section id="sec-audio" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xl font-bold mb-2 flex items-center gap-2 text-purple-900">
+                    <i data-lucide="music" class="w-5 h-5 text-purple-600"></i> 소리 데이터 압축 (FLAC, MP3, AAC) & 청음 테스트
+                </h2>
+                <p class="text-sm text-slate-600 mb-4">
+                    음원 파일(MP3, WAV 등)을 업로드하거나 기본 음원을 사용하여 <strong>무손실(FLAC)</strong>과 <strong>손실(MP3, AAC)</strong> 압축 시 소리의 주파수/비트 변화를 관찰해 보세요. 손실률을 직접 조절하면서 실제 음질 차이를 들어볼 수 있습니다.
+                </p>
+
+                <!-- Audio Upload & Player Controls -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <label class="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-sm transition flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i> 내 소리 파일 업로드
+                            <input type="file" id="audio-file-input" accept="audio/*" class="hidden" onchange="handleAudioUpload(event)">
+                        </label>
+                        <button onclick="loadDefaultAudio()" class="px-3 py-2 border border-slate-300 bg-white hover:bg-slate-100 rounded-lg text-xs text-slate-700 font-medium">
+                            기본 샘플 사운드 사용
+                        </button>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right w-full md:w-auto" id="audio-file-name">
+                        현재 파일: 기본 내장 샘플 신디사이저 음원
+                    </div>
+                </div>
+
+                <!-- Simulation Settings & Controls -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Left: Lossy Control Slider -->
+                    <div class="p-5 bg-purple-50/60 rounded-xl border border-purple-200 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
+                                <i data-lucide="sliders" class="w-4 h-4 text-purple-600"></i> 손실 압축률(Quality) 설정
+                            </h3>
+                            <p class="text-xs text-slate-600 mb-4">
+                                손실률을 크게 설정할수록 사람이 인지하기 힘든 고주파 영역 데이터와 미세 비트 정보를 제거하여 압축 효율을 극대화합니다.
+                            </p>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                                        <span>압축 손실 강도</span>
+                                        <span id="loss-level-val" class="text-purple-700 code-font">낮음 (높은 음질)</span>
+                                    </div>
+                                    <input type="range" id="loss-slider" min="1" max="100" value="15" oninput="updateAudioSimulation()" class="w-full accent-purple-600">
+                                    <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                                        <span>고음질 (Low Loss)</span>
+                                        <span>저음질 (High Loss)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audio Playback Buttons -->
+                        <div class="mt-6 pt-4 border-t border-purple-200/60 flex gap-2">
+                            <button id="btn-play-orig" onclick="playAudio('orig')" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                                <i data-lucide="play-circle" class="w-4 h-4"></i> 원본 듣기
+                            </button>
+                            <button id="btn-play-comp" onclick="playAudio('compressed')" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+                                <i data-lucide="volume-2" class="w-4 h-4"></i> 압축 소리 듣기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Waveform & Spectrum Visualizer -->
+                    <div class="lg:col-span-2 bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">실시간 주파수 / 비트 파형 스펙트럼 시각화</span>
+                                <span id="playing-state" class="text-xs text-slate-500">정지됨</span>
+                            </div>
+                            <canvas id="audio-canvas" width="500" height="150" class="w-full bg-slate-950 rounded border border-slate-800"></canvas>
+                        </div>
+
+                        <!-- Format comparison table -->
+                        <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
+                            <div class="p-2 bg-slate-800/80 rounded text-slate-300">
+                                <div class="text-slate-400 text-[10px]">FLAC (무손실)</div>
+                                <div id="size-flac" class="font-bold code-font text-purple-300 mt-0.5">0 KB</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">원형 100% 보존</div>
+                            </div>
+                            <div class="p-2 bg-slate-800/80 rounded text-slate-300">
+                                <div class="text-slate-400 text-[10px]">MP3 (손실)</div>
+                                <div id="size-mp3" class="font-bold code-font text-amber-300 mt-0.5">0 KB</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">청각 심리 모델 제거</div>
+                            </div>
+                            <div class="p-2 bg-slate-800/80 rounded text-slate-300">
+                                <div class="text-slate-400 text-[10px]">AAC (손실)</div>
+                                <div id="size-aac" class="font-bold code-font text-emerald-300 mt-0.5">0 KB</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">MP3 대비 고효율</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div id="quiz-audio-card" class="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+                <div class="flex items-center gap-2 text-amber-900 font-bold text-lg mb-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-amber-600"></i> 소리 압축 이해도 퀴즈
+                </div>
+                <p id="quiz-audio-question" class="text-slate-800 mb-4 font-medium"></p>
+                <div id="quiz-audio-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"></div>
+                <div id="quiz-audio-feedback" class="hidden p-3 rounded-lg text-sm font-semibold"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-400 text-xs py-4 px-6 text-center border-t border-slate-700">
+        <p>고등학교 정보 수업 보조용 시뮬레이터 | 디지털 데이터의 효율적 표현과 압축 학습</p>
+    </footer>
+
+
+    <!-- JavaScript Simulation Engine -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Global Tab Navigation
+        function switchTab(tab) {
+            ['text', 'image', 'audio'].forEach(t => {
+                document.getElementById(`sec-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active');
+                document.getElementById(`tab-${t}`).classList.add('text-slate-300');
+            });
+
+            document.getElementById(`sec-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.remove('text-slate-300');
+
+            if (tab === 'image') loadImgPattern();
+            if (tab === 'audio' && !audioBuffer) loadDefaultAudio();
+        }
+
+        // ==========================================
+        // 1. 문자열 압축 (RLE & LZ77 - 교과서 표기법) Logic
+        // ==========================================
+
+        let lastRLEBits = 0;
+        let lastLZ77Bits = 0;
+
+        function calculateRLE(input) {
+            let compressed = '';
+            let count = 1;
+            for (let i = 0; i < input.length; i++) {
+                if (i < input.length - 1 && input[i] === input[i + 1]) {
+                    count++;
+                } else {
+                    compressed += input[i] + count;
+                    count = 1;
+                }
+            }
+            return {
+                text: compressed,
+                bits: compressed.length * 8
+            };
+        }
+
+        // Textbook LZ77 format: Finds repeated patterns and substitutes them as (offset, length)
+        function calculateLZ77(input) {
+            let steps = [];
+            let resultStr = "";
+            let i = 0;
+            let totalBits = 0;
+
+            while (i < input.length) {
+                let bestDistance = 0;
+                let bestLength = 0;
+
+                // Look for longest pattern match in preceding text [0 ... i-1]
+                for (let d = 1; d <= i; d++) {
+                    let len = 0;
+                    while (i + len < input.length && input[i - d + len] === input[i + len]) {
+                        len++;
+                    }
+                    // We prefer longer matches (min length 2 to be meaningful)
+                    if (len >= 2 && len > bestLength) {
+                        bestDistance = d;
+                        bestLength = len;
+                    }
+                }
+
+                if (bestLength >= 2) {
+                    let pattern = input.substr(i, bestLength);
+                    let replaceTag = `(${bestDistance}, ${bestLength})`;
+                    resultStr += replaceTag;
+
+                    steps.push({
+                        pos: i,
+                        type: 'match',
+                        pattern: pattern,
+                        distance: bestDistance,
+                        length: bestLength,
+                        tag: replaceTag,
+                        desc: `위치 ${i}: 왼쪽으로 ${bestDistance}칸 이동하여 '${pattern}'(${bestLength}글자) 패턴 발견 ➔ ${replaceTag}로 치환`
+                    });
+
+                    i += bestLength;
+                    // (distance, length) tag estimated as 16 bits (8 bits each)
+                    totalBits += 16;
+                } else {
+                    let char = input[i];
+                    resultStr += char;
+
+                    steps.push({
+                        pos: i,
+                        type: 'literal',
+                        char: char,
+                        desc: `위치 ${i}: 이전 반복 패턴 없음 ➔ 문자 '${char}' 그대로 유지`
+                    });
+
+                    i += 1;
+                    totalBits += 8; // 1 ASCII character = 8 bits
+                }
+            }
+
+            return {
+                text: resultStr,
+                steps: steps,
+                bits: totalBits
+            };
+        }
+
+        function updateQuizContext() {
+            const input = document.getElementById('text-input').value.trim() || "COFFEEEEEE FREEE";
+            document.getElementById('quiz-curr-text').innerText = input;
+            document.getElementById('quiz-text-feedback').classList.add('hidden');
+            
+            lastRLEBits = calculateRLE(input).bits;
+            lastLZ77Bits = calculateLZ77(input).bits;
+        }
+
+        function runRLE() {
+            const input = document.getElementById('text-input').value.trim();
+            if (!input) return;
+
+            document.getElementById('algo-tag').innerText = "RLE (Run-Length Encoding)";
+            const container = document.getElementById('text-visualizer-steps');
+            container.innerHTML = '';
+
+            let resultObj = calculateRLE(input);
+            let compressed = resultObj.text;
+            let count = 1;
+            let origBits = input.length * 8;
+
+            // Render final text result
+            document.getElementById('text-final-result').innerText = compressed;
+            document.getElementById('text-result-len').innerText = `${compressed.length}자`;
+
+            for (let i = 0; i < input.length; i++) {
+                if (i < input.length - 1 && input[i] === input[i + 1]) {
+                    count++;
+                } else {
+                    const stepEl = document.createElement('div');
+                    stepEl.className = 'p-2 bg-slate-800 rounded border border-slate-700 flex justify-between items-center text-xs sm:text-sm';
+                    stepEl.innerHTML = `
+                        <span>문자 <span class="text-amber-400 font-bold">'${input[i]}'</span>가 <span class="text-indigo-400 font-bold">${count}</span>번 연속됨</span>
+                        <span class="text-xs bg-indigo-900/50 text-indigo-300 px-2 py-0.5 rounded code-font">${input[i]}${count}</span>
+                    `;
+                    container.appendChild(stepEl);
+                    count = 1;
+                }
+            }
+
+            updateTextMetrics(origBits, resultObj.bits);
+            updateQuizContext();
+        }
+
+        function runLZ77() {
+            const input = document.getElementById('text-input').value.trim();
+            if (!input) return;
+
+            document.getElementById('algo-tag').innerText = "렘펠-지브 (LZ77)";
+            const container = document.getElementById('text-visualizer-steps');
+            container.innerHTML = '';
+
+            let resultObj = calculateLZ77(input);
+            let origBits = input.length * 8;
+
+            // Render final text result (e.g. WELCOME (5, 3)PANY)
+            document.getElementById('text-final-result').innerText = resultObj.text;
+            document.getElementById('text-result-len').innerText = `${resultObj.text.length}자`;
+
+            resultObj.steps.forEach((step) => {
+                const stepEl = document.createElement('div');
+                if (step.type === 'match') {
+                    stepEl.className = 'p-2 bg-purple-950/60 rounded border border-purple-800 text-xs sm:text-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1';
+                    stepEl.innerHTML = `
+                        <div>
+                            <span class="text-purple-300 font-bold">[패턴 치환]</span> ${step.desc}
+                        </div>
+                        <span class="bg-purple-800 text-purple-200 font-bold px-2 py-0.5 rounded code-font shrink-0">${step.tag}</span>
+                    `;
+                } else {
+                    stepEl.className = 'p-2 bg-slate-800/80 rounded border border-slate-700 text-xs text-slate-300 flex justify-between items-center';
+                    stepEl.innerHTML = `
+                        <span>${step.desc}</span>
+                        <span class="code-font text-slate-400 font-bold">'${step.char}'</span>
+                    `;
+                }
+                container.appendChild(stepEl);
+            });
+
+            updateTextMetrics(origBits, resultObj.bits);
+            updateQuizContext();
+        }
+
+        function updateTextMetrics(origBits, compBits) {
+            document.getElementById('text-orig-size').innerText = `${origBits} bits`;
+            document.getElementById('text-comp-size').innerText = `${compBits} bits`;
+
+            let ratio = ((1 - compBits / origBits) * 100).toFixed(1);
+            let ratioEl = document.getElementById('text-ratio');
+            let badgeEl = document.getElementById('text-ratio-badge');
+
+            document.getElementById('bar-comp-text').style.width = `${Math.min(100, Math.max(0, (compBits / origBits) * 100))}%`;
+
+            if (ratio > 0) {
+                ratioEl.innerText = `${ratio}% 절감`;
+                ratioEl.className = "text-2xl font-extrabold text-emerald-600 code-font";
+                badgeEl.innerText = "압축 성공";
+                badgeEl.className = "px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold";
+            } else {
+                ratioEl.innerText = `${Math.abs(ratio)}% 증가`;
+                ratioEl.className = "text-2xl font-extrabold text-rose-600 code-font";
+                badgeEl.innerText = "압축 효율 저하 (데이터 커짐)";
+                badgeEl.className = "px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-xs font-bold";
+            }
+        }
+
+        function checkTextQuizChoice(selectedAlgo) {
+            const input = document.getElementById('text-input').value.trim();
+            const origBits = input.length * 8;
+            const rleBits = calculateRLE(input).bits;
+            const lz77Bits = calculateLZ77(input).bits;
+            
+            const fbEl = document.getElementById('quiz-text-feedback');
+            fbEl.classList.remove('hidden');
+
+            let betterAlgo = 'rle';
+            if (lz77Bits < rleBits) betterAlgo = 'lz77';
+            else if (lz77Bits === rleBits) betterAlgo = 'equal';
+
+            if (selectedAlgo === betterAlgo) {
+                fbEl.className = "p-4 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300";
+                fbEl.innerHTML = `
+                    ⭕ <strong>정답입니다!</strong> 선택한 방식이 더 효율적입니다.<br>
+                    • RLE 압축 결과: <span class="code-font font-bold">${rleBits} bits</span><br>
+                    • LZ77 압축 결과: <span class="code-font font-bold">${lz77Bits} bits</span><br>
+                    <span class="text-xs text-emerald-700 font-normal mt-1 block">
+                    (${betterAlgo === 'rle' ? '동일 문자의 연속 반복이 많아 RLE가 더 유리했습니다.' : '단어나 패턴의 상대적 위치 반복 구조가 존재하여 LZ77 방식이 더 유리했습니다.'})
+                    </span>
+                `;
+            } else if (betterAlgo === 'equal') {
+                fbEl.className = "p-4 rounded-lg text-sm font-semibold bg-blue-100 text-blue-900 border border-blue-300";
+                fbEl.innerHTML = `
+                    ℹ️ <strong>두 방식의 압축 결과 크기가 동일합니다!</strong><br>
+                    • RLE 압축 결과: <span class="code-font font-bold">${rleBits} bits</span> | LZ77 압축 결과: <span class="code-font font-bold">${lz77Bits} bits</span>
+                `;
+            } else {
+                fbEl.className = "p-4 rounded-lg text-sm font-semibold bg-rose-100 text-rose-900 border border-rose-300";
+                fbEl.innerHTML = `
+                    ❌ <strong>아쉽습니다. 다시 비교해보세요!</strong><br>
+                    • RLE 압축 결과: <span class="code-font font-bold">${rleBits} bits</span><br>
+                    • LZ77 압축 결과: <span class="code-font font-bold">${lz77Bits} bits</span><br>
+                    <span class="text-xs text-rose-700 font-normal mt-1 block">
+                    (${betterAlgo === 'rle' ? '연속된 동일 문자 묶음이 많을 때는 RLE가 더 작은 비트를 생성합니다.' : '떨어져 있는 같은 패턴/단어를 참조할 때는 LZ77이 더 뛰어난 압축률을 보입니다.'})
+                    </span>
+                `;
+            }
+        }
+
+
+        // ==========================================
+        // 2. 이미지 압축 (BMP, PNG, GIF, JPEG)
+        // ==========================================
+
+        const imgCanvas = document.getElementById('img-canvas');
+        const imgCtx = imgCanvas.getContext('2d');
+        const gridSize = 8;
+        let pixelData = [];
+
+        function loadImgPattern() {
+            const type = document.getElementById('img-pattern-select').value;
+            pixelData = [];
+            const cellSize = imgCanvas.width / gridSize;
+
+            for (let r = 0; r < gridSize; r++) {
+                pixelData[r] = [];
+                for (let c = 0; c < gridSize; c++) {
+                    let color = "#FFFFFF";
+                    if (type === 'simple') {
+                        color = (r < 4) ? "#3B82F6" : "#EF4444";
+                    } else if (type === 'gradient') {
+                        let val = Math.floor((r + c) / 14 * 255);
+                        color = `rgb(${val}, ${val}, 255)`;
+                    } else if (type === 'checker') {
+                        color = ((r + c) % 2 === 0) ? "#000000" : "#FFFFFF";
+                    }
+                    pixelData[r][c] = color;
+
+                    imgCtx.fillStyle = color;
+                    imgCtx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+                    imgCtx.strokeStyle = "#cbd5e1";
+                    imgCtx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+                }
+            }
+
+            simulateImageFormats(type);
+            renderBitMapping();
+        }
+
+        function simulateImageFormats(patternType) {
+            const bmpBits = 8 * 8 * 24;
+            let pngBits, gifBits, jpegBits;
+
+            if (patternType === 'simple') {
+                pngBits = 280;
+                gifBits = 320;
+                jpegBits = 450;
+            } else if (patternType === 'gradient') {
+                pngBits = 600;
+                gifBits = 850;
+                jpegBits = 220;
+            } else {
+                pngBits = 1400;
+                gifBits = 1100;
+                jpegBits = 800;
+            }
+
+            document.getElementById('size-bmp').innerText = `${bmpBits.toLocaleString()} bits`;
+            document.getElementById('size-png').innerText = `${pngBits.toLocaleString()} bits`;
+            document.getElementById('size-gif').innerText = `${gifBits.toLocaleString()} bits`;
+            document.getElementById('size-jpeg').innerText = `${jpegBits.toLocaleString()} bits`;
+
+            renderImageQuiz(patternType);
+        }
+
+        // Helper: Hex / RGB to Binary String
+        function colorToBinary(hexOrRgb) {
+            let r = 255, g = 255, b = 255;
+            if (hexOrRgb.startsWith('#')) {
+                r = parseInt(hexOrRgb.substr(1, 2), 16) || 0;
+                g = parseInt(hexOrRgb.substr(3, 2), 16) || 0;
+                b = parseInt(hexOrRgb.substr(5, 2), 16) || 0;
+            } else if (hexOrRgb.startsWith('rgb')) {
+                let parts = hexOrRgb.match(/\d+/g);
+                if (parts) {
+                    r = parseInt(parts[0]);
+                    g = parseInt(parts[1]);
+                    b = parseInt(parts[2]);
+                }
+            }
+            return [r, g, b].map(v => v.toString(2).padStart(8, '0')).join('');
+        }
+
+        function renderBitMapping() {
+            const fmt = document.getElementById('bit-map-format').value;
+            const container = document.getElementById('bit-mapping-container');
+            container.innerHTML = '';
+
+            let flatColors = [];
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    flatColors.push({ r, c, color: pixelData[r][c] });
+                }
+            }
+
+            if (fmt === 'bmp') {
+                flatColors.slice(0, 8).forEach((item, idx) => {
+                    let bin = colorToBinary(item.color);
+                    let row = document.createElement('div');
+                    row.className = 'p-2 bg-slate-950 rounded border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full inline-block border border-white" style="background-color:${item.color}"></span>
+                            <span class="text-slate-300 font-bold">픽셀 #${idx+1} (${item.r},${item.c}):</span>
+                        </div>
+                        <div class="text-emerald-400 font-mono text-[11px] break-all">
+                            RGB 24bit ➔ <span class="text-indigo-300">${bin.substr(0,8)}</span> <span class="text-emerald-300">${bin.substr(8,8)}</span> <span class="text-rose-300">${bin.substr(16,8)}</span>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+                let note = document.createElement('div');
+                note.className = 'text-slate-400 text-[11px] pt-1 text-center';
+                note.innerText = '* BMP 원본: 픽셀마다 압축 없이 Red(8bit)+Green(8bit)+Blue(8bit) 총 24비트 0101 스트림으로 나열 저장됩니다.';
+                container.appendChild(note);
+
+            } else if (fmt === 'gif') {
+                let uniqueColors = [...new Set(flatColors.map(f => f.color))];
+                let header = document.createElement('div');
+                header.className = 'p-2 bg-amber-950/40 border border-amber-800 rounded text-amber-200 text-[11px] mb-2';
+                header.innerHTML = `<strong>[GIF 팔레트 치환]</strong> 전체 색상을 ${uniqueColors.length}개로 제한 ➔ 픽셀당 24비트 대신 ${Math.ceil(Math.log2(uniqueColors.length||1))}비트 인덱스로 축소 후 LZW 인코딩`;
+                container.appendChild(header);
+
+                uniqueColors.forEach((col, idx) => {
+                    let idxBin = idx.toString(2).padStart(4, '0');
+                    let row = document.createElement('div');
+                    row.className = 'p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full inline-block border border-white" style="background-color:${col}"></span>
+                            <span class="text-slate-300">색상 Palette #${idx}</span>
+                        </div>
+                        <div class="text-amber-300 font-mono text-[11px]">
+                            치환 비트 코드 ➔ <span class="font-bold text-white">${idxBin}</span> (LZW 압축 입력)
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+
+            } else if (fmt === 'png') {
+                let header = document.createElement('div');
+                header.className = 'p-2 bg-emerald-950/40 border border-emerald-800 rounded text-emerald-200 text-[11px] mb-2';
+                header.innerHTML = `<strong>[PNG 차분 필터 시각화]</strong> 이전 픽셀과의 색상 차이값(Δ)을 계산한 비트를 Deflate(LZ77+허프만)로 치환 저장`;
+                container.appendChild(header);
+
+                for (let i = 0; i < Math.min(6, flatColors.length - 1); i++) {
+                    let diffBin = Math.abs(i * 12 - 5).toString(2).padStart(8, '0');
+                    let row = document.createElement('div');
+                    row.className = 'p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center';
+                    row.innerHTML = `
+                        <span class="text-slate-300">픽셀 #${i+1} ➔ #${i+2} 변화량(Delta)</span>
+                        <span class="text-emerald-300 font-mono text-[11px]">차분 비트 치환 ➔ <span class="text-white font-bold">${diffBin}</span></span>
+                    `;
+                    container.appendChild(row);
+                }
+
+            } else if (fmt === 'jpeg') {
+                let header = document.createElement('div');
+                header.className = 'p-2 bg-blue-950/40 border border-blue-800 rounded text-blue-200 text-[11px] mb-2';
+                header.innerHTML = `<strong>[JPEG 손실 DCT & 양자화]</strong> 8x8 픽셀 공간을 주파수 도메인 코사인 계수로 변환 후, 눈에 잘 안 띄는 고주파 비트를 0으로 치환 제거`;
+                container.appendChild(header);
+
+                const sampleFreqs = [
+                    { name: '저주파 (밝기/기본색)', orig: '11010110', quant: '11010000', kept: '보존' },
+                    { name: '중주파 (대략적 경계)', orig: '01001101', quant: '01000000', kept: '축소' },
+                    { name: '고주파 (미세 노이즈)', orig: '00010111', quant: '00000000', kept: '완전 제거(0비트)' }
+                ];
+
+                sampleFreqs.forEach(f => {
+                    let row = document.createElement('div');
+                    row.className = 'p-2 bg-slate-950 rounded border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1';
+                    row.innerHTML = `
+                        <span class="text-slate-300">${f.name}</span>
+                        <div class="text-xs font-mono">
+                            <span class="text-slate-500 line-through">${f.orig}</span> ➔ 
+                            <span class="text-blue-300 font-bold">${f.quant}</span> 
+                            <span class="text-[10px] bg-blue-900/60 text-blue-200 px-1.5 py-0.5 rounded ml-1">${f.kept}</span>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+        }
+
+        function renderImageQuiz(patternType) {
+            const qEl = document.getElementById('quiz-img-question');
+            const optEl = document.getElementById('quiz-img-options');
+            const fbEl = document.getElementById('quiz-img-feedback');
+
+            fbEl.classList.add('hidden');
+            optEl.innerHTML = '';
+
+            let question = "자연스러운 풍경 사진과 같이 색상이 매우 다양하고 연속적으로 변하는 복잡한 이미지를 압축할 때 가장 용량 절감 효율이 높은 포맷과 그 이유는 무엇일까요?";
+            let options = [
+                "PNG - 무손실 방식이므로 항상 가장 작게 압축된다.",
+                "JPEG - 사람이 인지하기 힘든 고주파 색상 변화 정보를 손실 압축하여 파일 크기를 크게 줄인다.",
+                "GIF - 색상 수를 256색으로 늘려 사진에 최적화된다.",
+                "BMP - 압축을 하지 않으므로 화질과 용량이 동시에 최적화된다."
+            ];
+            let correctIdx = 1;
+
+            qEl.innerText = question;
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "p-3 text-left bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-xs md:text-sm transition";
+                btn.innerText = `${idx + 1}. ${opt}`;
+                btn.onclick = () => {
+                    fbEl.classList.remove('hidden');
+                    if (idx === correctIdx) {
+                        fbEl.className = "p-3 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                        fbEl.innerText = "⭕ 정답입니다! 사진에는 손실 압축 방식을 사용하는 JPEG 포맷이 가장 높은 압축 효율을 보여줍니다.";
+                    } else {
+                        fbEl.className = "p-3 rounded-lg text-sm font-semibold bg-rose-100 text-rose-800 border border-rose-300";
+                        fbEl.innerText = "❌ 다시 생각해보세요! 각 이미지 포맷별 압축 특징(손실 vs 무손실)을 기억해보세요.";
+                    }
+                };
+                optEl.appendChild(btn);
+            });
+        }
+
+
+        // ==========================================
+        // 3. 소리 데이터 압축 & Web Audio API Engine
+        // ==========================================
+
+        let audioCtx = null;
+        let audioBuffer = null;
+        let currentSource = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioCtx;
+        }
+
+        function loadDefaultAudio() {
+            const ctx = getAudioContext();
+            const sampleRate = ctx.sampleRate;
+            const duration = 3.0;
+            const buffer = ctx.createBuffer(1, sampleRate * duration, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < buffer.length; i++) {
+                let t = i / sampleRate;
+                let freq1 = 440;
+                let freq2 = 554.37;
+                let freq3 = 659.25;
+                
+                let envelope = Math.exp(-t * 0.8);
+                data[i] = (
+                    0.4 * Math.sin(2 * Math.PI * freq1 * t) +
+                    0.3 * Math.sin(2 * Math.PI * freq2 * t) +
+                    0.2 * Math.sin(2 * Math.PI * freq3 * t) +
+                    0.1 * Math.sin(2 * Math.PI * freq1 * 4 * t)
+                ) * envelope;
+            }
+
+            audioBuffer = buffer;
+            document.getElementById('audio-file-name').innerText = "현재 파일: 기본 내장 합성 사운드";
+            updateAudioSimulation();
+        }
+
+        function handleAudioUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('audio-file-name').innerText = `현재 파일: ${file.name}`;
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const ctx = getAudioContext();
+                ctx.decodeAudioData(event.target.result, (decoded) => {
+                    audioBuffer = decoded;
+                    updateAudioSimulation();
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function updateAudioSimulation() {
+            if (!audioBuffer) return;
+
+            const lossVal = parseInt(document.getElementById('loss-slider').value);
+            const lossLabel = document.getElementById('loss-level-val');
+
+            if (lossVal < 30) {
+                lossLabel.innerText = `낮음 (품질 상, 손실률 ${lossVal}%)`;
+                lossLabel.className = "text-emerald-600 code-font font-bold";
+            } else if (lossVal < 70) {
+                lossLabel.innerText = `중간 (품질 중, 손실률 ${lossVal}%)`;
+                lossLabel.className = "text-amber-600 code-font font-bold";
+            } else {
+                lossLabel.innerText = `높음 (품질 하, 손실률 ${lossVal}%)`;
+                lossLabel.className = "text-rose-600 code-font font-bold";
+            }
+
+            const duration = audioBuffer.duration;
+            const pcmBits = duration * audioBuffer.sampleRate * 16;
+
+            const flacSize = Math.round((pcmBits * 0.55) / 8 / 1024);
+            const mp3Size = Math.round((pcmBits * (1 - (lossVal * 0.008))) / 8 / 1024 / 8);
+            const aacSize = Math.round(mp3Size * 0.82);
+
+            document.getElementById('size-flac').innerText = `${flacSize} KB`;
+            document.getElementById('size-mp3').innerText = `${mp3Size} KB`;
+            document.getElementById('size-aac').innerText = `${aacSize} KB`;
+
+            drawAudioSpectrum(lossVal);
+            renderAudioQuiz();
+        }
+
+        function drawAudioSpectrum(lossVal) {
+            const canvas = document.getElementById('audio-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (!audioBuffer) return;
+            const rawData = audioBuffer.getChannelData(0);
+            const step = Math.ceil(rawData.length / w);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < w; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    let datum = rawData[i * step + j];
+                    if (datum < min) min = datum;
+                    if (datum > max) max = datum;
+                }
+                ctx.moveTo(i, (1 + min) * h / 2);
+                ctx.lineTo(i, (1 + max) * h / 2);
+            }
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 1.5;
+
+            let quantizeStep = 1 + (lossVal / 10); 
+
+            for (let i = 0; i < w; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    let datum = rawData[i * step + j];
+                    datum = Math.round(datum * (20 - quantizeStep)) / (20 - quantizeStep);
+                    if (datum < min) min = datum;
+                    if (datum > max) max = datum;
+                }
+                ctx.moveTo(i, (1 + min) * h / 2);
+                ctx.lineTo(i, (1 + max) * h / 2);
+            }
+            ctx.stroke();
+        }
+
+        function playAudio(mode) {
+            const ctx = getAudioContext();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            if (currentSource) {
+                currentSource.stop();
+            }
+
+            if (!audioBuffer) return;
+
+            currentSource = ctx.createBufferSource();
+
+            if (mode === 'orig') {
+                currentSource.buffer = audioBuffer;
+                currentSource.connect(ctx.destination);
+                document.getElementById('playing-state').innerText = "▶ 원본 재생 중...";
+                document.getElementById('playing-state').className = "text-xs text-emerald-400 font-bold";
+            } else {
+                const lossVal = parseInt(document.getElementById('loss-slider').value);
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 20000 - (lossVal * 185);
+
+                const distortion = ctx.createWaveShaper();
+                distortion.curve = makeDistortionCurve(101 - lossVal);
+
+                currentSource.buffer = audioBuffer;
+                currentSource.connect(filter);
+                filter.connect(distortion);
+                distortion.connect(ctx.destination);
+
+                document.getElementById('playing-state').innerText = `▶ 압축 소리 재생 중 (손실률 ${lossVal}%)`;
+                document.getElementById('playing-state').className = "text-xs text-purple-400 font-bold";
+            }
+
+            currentSource.start();
+            currentSource.onended = () => {
+                document.getElementById('playing-state').innerText = "정지됨";
+                document.getElementById('playing-state').className = "text-xs text-slate-500";
+            };
+        }
+
+        function makeDistortionCurve(quality) {
+            let n_samples = 44100;
+            let curve = new Float32Array(n_samples);
+            let steps = quality;
+            for (let i = 0; i < n_samples; ++i) {
+                let x = (i * 2) / n_samples - 1;
+                curve[i] = Math.round(x * steps) / steps;
+            }
+            return curve;
+        }
+
+        function renderAudioQuiz() {
+            const qEl = document.getElementById('quiz-audio-question');
+            const optEl = document.getElementById('quiz-audio-options');
+            const fbEl = document.getElementById('quiz-audio-feedback');
+
+            fbEl.classList.add('hidden');
+            optEl.innerHTML = '';
+
+            let question = "MP3나 AAC와 같은 손실 소리 압축 방식이 음원 파일 용량을 비약적으로 줄일 수 있는 주요 원리는 무엇일까요?";
+            let options = [
+                "사람이 들을 수 없는 아주 높은 주파수(가청 주파수 영역 밖)나 큰 소리에 묻히는 미세한 소리를 삭제한다.",
+                "소리의 재생 속도를 2배로 빠르게 변환한다.",
+                "음원의 스테레오(2채널) 채널을 소음으로 판단해 모두 삭제한다.",
+                "소리 데이터의 모든 비트를 무조건 절반으로 줄인다."
+            ];
+            let correctIdx = 0;
+
+            qEl.innerText = question;
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "p-3 text-left bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-xs md:text-sm transition";
+                btn.innerText = `${idx + 1}. ${opt}`;
+                btn.onclick = () => {
+                    fbEl.classList.remove('hidden');
+                    if (idx === correctIdx) {
+                        fbEl.className = "p-3 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                        fbEl.innerText = "⭕ 정답입니다! 인간의 청각 심리 모델(Psychoacoustics)을 적용하여 인지하기 힘든 소리를 제거함으로써 높은 압축률을 달성합니다.";
+                    } else {
+                        fbEl.className = "p-3 rounded-lg text-sm font-semibold bg-rose-100 text-rose-800 border border-rose-300";
+                        fbEl.innerText = "❌ 다시 생각해보세요! 사람이 소리를 인지하는 특성(가청 주파수 범위 등)을 고려해보세요.";
+                    }
+                };
+                optEl.appendChild(btn);
+            });
+        }
+
+        // Initialize Default View on Load
+        window.onload = function() {
+            runLZ77();
+            updateQuizContext();
+        };
+    </script>
+</body>
+</html>
