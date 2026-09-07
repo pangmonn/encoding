@@ -902,6 +902,42 @@
             }
             return curve;
         }
+        function renderAudioQuiz() {
+            const qEl = document.getElementById('quiz-audio-question');
+            const optEl = document.getElementById('quiz-audio-options');
+            const fbEl = document.getElementById('quiz-audio-feedback');
+
+            fbEl.classList.add('hidden');
+            optEl.innerHTML = '';
+
+            let question = "MP3나 AAC와 같은 손실 소리 압축 방식이 음원 파일 용량을 비약적으로 줄일 수 있는 주요 원리는 무엇일까요?";
+            let options = [
+                "사람이 들을 수 없는 아주 높은 주파수(가청 주파수 영역 밖)나 큰 소리에 묻히는 미세한 소리를 삭제한다.",
+                "소리의 재생 속도를 2배로 빠르게 변환한다.",
+                "음원의 스테레오(2채널) 채널을 소음으로 판단해 모두 삭제한다.",
+                "소리 데이터의 모든 비트를 무조건 절반으로 줄인다."
+            ];
+            let correctIdx = 0;
+
+            qEl.innerText = question;
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "p-3 text-left bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-xs md:text-sm transition";
+                btn.innerText = `${idx + 1}. ${opt}`;
+                btn.onclick = () => {
+                    fbEl.classList.remove('hidden');
+                    if (idx === correctIdx) {
+                        fbEl.className = "p-3 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                        fbEl.innerText = "⭕ 정답입니다! 인간의 청각 심리 모델(Psychoacoustics)을 적용하여 인지하기 힘든 소리를 제거함으로써 높은 압축률을 달성합니다.";
+                    } else {
+                        fbEl.className = "p-3 rounded-lg text-sm font-semibold bg-rose-100 text-rose-800 border border-rose-300";
+                        fbEl.innerText = "❌ 다시 생각해보세요! 사람이 소리를 인지하는 특성(가청 주파수 범위 등)을 고려해보세요.";
+                    }
+                };
+                optEl.appendChild(btn);
+            });
+        }
         // Initialize default view
         window.onload = function() {
             runRLE();
